@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Entry — Caffeine Tracker{% endblock %}
+{% block content %}
+
+<section class="card">
+  <h1>Today's intake</h1>
+  <div class="today-total" id="today-total-wrap">
+    <div class="today-total-figure"><span id="today-total-mg">{{ today_total }}</span> mg
+      <span class="muted">/ {{ limit_mg|int }} mg limit</span></div>
+    <div class="progress-track">
+      <div class="progress-fill" id="today-progress-fill"
+           style="width: {{ [ (today_total / limit_mg * 100) if limit_mg else 0, 100 ] | min }}%"></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Quick add</h2>
+  <div class="preset-grid" id="preset-grid">
+    {% for p in presets %}
+    <button type="button" class="preset-btn"
+            data-name="{{ p.name }}"
+            data-serving="{{ p.default_serving_ml }}">
+      {{ p.name }}<span class="preset-serving">{{ p.default_serving_ml|int }} ml</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  <form id="entry-form" class="entry-form">
+    <div class="form-row">
+      <label for="drink-name">Drink</label>
+      <input type="text" id="drink-name" name="drink_name" list="known-drinks"
+             placeholder="e.g. Red Bull, or type any other drink" required autocomplete="off">
+      <datalist id="known-drinks"></datalist>
+    </div>
+    <div class="form-row">
+      <label for="volume-ml">Volume (ml)</label>
+      <input type="number" id="volume-ml" name="volume_ml" min="1" step="0.1" required>
+    </div>
+    <div class="form-row">
+      <label for="consumed-at">When</label>
+      <input type="datetime-local" id="consumed-at" name="consumed_at">
+    </div>
+    <div class="form-row">
+      <label for="notes">Notes (optional)</label>
+      <input type="text" id="notes" name="notes" placeholder="optional">
+    </div>
+    <button type="submit" class="primary-btn">Save entry</button>
+    <span id="entry-status" class="status-msg"></span>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Logged today</h2>
+  <table class="entries-table" id="today-entries-table">
+    <thead><tr><th>Time</th><th>Drink</th><th>Volume</th><th>Caffeine</th><th></th></tr></thead>
+    <tbody>
+      {% for e in today_entries %}
+      <tr data-entry-id="{{ e.id }}">
+        <td>{{ e.consumed_at[11:16] }}</td>
+        <td>{{ e.drink_name }}</td>
+        <td>{{ e.volume_ml }} ml</td>
+        <td>{% if e.caffeine_mg is not none %}{{ e.caffeine_mg }} mg{% else %}<span class="pending-tag">lookup pending</span>{% endif %}</td>
+        <td><button class="delete-btn" data-entry-id="{{ e.id }}">&times;</button></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted">No entries yet today.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

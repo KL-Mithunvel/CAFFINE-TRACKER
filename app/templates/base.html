@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Caffeine Tracker{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body>
+<nav class="topnav">
+  <a href="{{ url_for('main.entry_page') }}" class="brand">&#9749; Caffeine Tracker</a>
+  <div class="nav-links">
+    <a href="{{ url_for('main.entry_page') }}" {% if request.path == '/' %}class="active"{% endif %}>Entry</a>
+    <a href="{{ url_for('main.dashboard_page') }}" {% if request.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a>
+    <a href="{{ url_for('main.manage_page') }}" {% if request.path == '/manage' %}class="active"{% endif %}>Manage</a>
+    <a href="{{ url_for('main.settings_page') }}" {% if request.path == '/settings' %}class="active"{% endif %}>Settings</a>
+  </div>
+</nav>
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

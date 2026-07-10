@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Settings — Caffeine Tracker{% endblock %}
+{% block content %}
+
+<section class="card">
+  <h1>Settings</h1>
+  <form id="settings-form" class="entry-form">
+    <div class="form-row">
+      <label for="daily-limit">Daily caffeine limit (mg)</label>
+      <input type="number" id="daily-limit" name="daily_limit_mg" min="1" step="1" value="{{ limit_mg|int }}" required>
+    </div>
+    <button type="submit" class="primary-btn">Save</button>
+    <span id="settings-status" class="status-msg"></span>
+  </form>
+  <p class="muted">Default is 400 mg/day (FDA guidance for healthy adults). This value drives every
+  "above limit" statistic on the dashboard.</p>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Manage — Caffeine Tracker{% endblock %}
+{% block content %}
+
+<section class="card">
+  <h1>Manage entries</h1>
+  <table class="entries-table" id="manage-entries-table">
+    <thead><tr><th>Date</th><th>Time</th><th>Drink</th><th>Volume (ml)</th><th>Caffeine (mg)</th><th>Notes</th><th></th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr data-entry-id="{{ e.id }}">
+        <td>{{ e.consumed_at[:10] }}</td>
+        <td>{{ e.consumed_at[11:16] }}</td>
+        <td>{{ e.drink_name }}</td>
+        <td class="editable" data-field="volume_ml">{{ e.volume_ml }}</td>
+        <td>{% if e.caffeine_mg is not none %}{{ e.caffeine_mg }}{% else %}<span class="pending-tag">pending</span>{% endif %}</td>
+        <td class="editable" data-field="notes">{{ e.notes or "" }}</td>
+        <td><button class="delete-btn" data-entry-id="{{ e.id }}">&times;</button></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="muted">No entries logged yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h1>Manage drinks</h1>
+  <table class="entries-table" id="manage-drinks-table">
+    <thead><tr><th>Name</th><th>mg / 100ml</th><th>Default serving (ml)</th><th>Status</th><th>Source</th><th></th></tr></thead>
+    <tbody>
+      {% for d in drinks %}
+      <tr data-drink-id="{{ d.id }}">
+        <td>{{ d.name }}</td>
+        <td class="editable" data-field="caffeine_per_100ml">{{ d.caffeine_per_100ml if d.caffeine_per_100ml is not none else "" }}</td>
+        <td class="editable" data-field="default_serving_ml">{{ d.default_serving_ml if d.default_serving_ml is not none else "" }}</td>
+        <td>
+          {% if d.lookup_status == 'pending' %}<span class="pending-tag">pending</span>
+          {% elif d.lookup_status == 'failed' %}<span class="failed-tag">needs value</span>
+          {% else %}resolved{% endif %}
+        </td>
+        <td class="muted">{{ d.source }}</td>
+        <td><button class="delete-drink-btn" data-drink-id="{{ d.id }}">&times;</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted">Click a value cell to edit it. Deleting a drink is blocked while it still has entries.</p>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

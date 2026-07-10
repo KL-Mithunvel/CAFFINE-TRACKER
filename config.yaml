@@ -1,0 +1,22 @@
+# Caffeine Tracker configuration
+# Machine/config-level values live here. User-editable values (like the
+# daily limit) live in the `settings` table and win over this file once set.
+
+server:
+  host: "127.0.0.1"
+  port: 5000
+  open_browser: false
+
+database:
+  path: "data/caffeine.db"
+
+lookup:
+  # Open Food Facts search endpoint (read-only GET, no API key needed)
+  open_food_facts_url: "https://world.openfoodfacts.org/cgi/search.pl"
+  request_timeout_seconds: 4
+  reference_file: "reference/caffeine_reference.json"
+  # How often the background worker retries drinks stuck in lookup_status='pending'
+  retry_minutes: 5
+
+defaults:
+  daily_limit_mg: 400

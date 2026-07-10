@@ -1,0 +1,158 @@
+# CLAUDE.md — Caffeine Tracker
+
+> Read `.CLAUDE/CLAUDE-COMMON.md` (universal workflow rules) and
+> `.CLAUDE/PROJ_STARTER.md` (owner preferences) first. This file contains
+> the project-specific brief; anything here overrides the common files.
+
+---
+
+## Project Overview
+
+**Caffeine Tracker** — a local, single-user Windows 11 app for logging
+caffeinated drinks in ml and visualising intake statistics against the
+recommended 400 mg/day limit.
+
+- Author/owner: kl mithunvel · License: MIT
+- Entry point: `run.py` (starts Flask on `http://127.0.0.1:5000`, opens browser)
+- Minimum runtime: Python 3.12, Windows 11 (also runs on Linux — no OS-specific code planned)
+- Core docs: `project/REQUIREMENTS.md`, `project/PROJECT_PLAN.md`, `project/SCHEMA.md`
+
+**Current status: planning phase — no application code exists yet.**
+Implementation follows the 4 phases in `project/PROJECT_PLAN.md`.
+
+---
+
+## Running the System
+
+```bat
+:: Windows — always activate the venv first
+venv\Scripts\activate
+
+python run.py            :: start the app (once Phase 1 lands)
+pytest tests/            :: run tests
+python -m py_compile app\*.py run.py   :: minimum lint
+```
+
+One-time setup: `python -m venv venv`, activate, `pip install -r requirements.txt`.
+The SQLite DB is created and seeded automatically on first run — no manual step.
+
+---
+
+## Architecture
+
+Planned module responsibilities (see `project/PROJECT_PLAN.md` for the full layout):
+
+| File | Role |
+|------|------|
+| `run.py` | Entry point: init DB, start lookup worker, open browser, run Flask |
+| `app/db.py` | SQLite connection, init/seed from `app/schema.sql` |
+| `app/models.py` | CRUD for drinks/entries/settings — pure functions, no Flask imports |
+| `app/stats.py` | All dashboard statistics — pure functions, no Flask imports |
+| `app/lookup.py` | Caffeine lookup chain (Open Food Facts → reference JSON → manual) + background retry worker |
+| `app/routes.py` | HTTP layer only — thin, delegates to models/stats/lookup |
+| `app/templates/`, `app/static/` | Jinja2 pages, vanilla JS, vendored Chart.js |
+
+```
+Browser (entry form / dashboard)
+   │ HTTP (localhost only)
+   ▼
+routes.py ──► models.py ──► SQLite data/caffeine.db
+   │              ▲
+   ▼              │ back-fill pending entries
+stats.py      lookup.py ◄── daemon thread (retry every N min)
+                  │
+                  ▼ read-only GET (only network access in the app)
+          Open Food Facts API
+```
+
+Threading model: single Flask thread + one daemon `threading.Thread` for
+pending lookups. SQLite connections are per-thread (never shared).
+
+No simulation/hardware split — the dev machine is the target machine.
+
+---
+
+## Schema Reference
+
+- DDL: `app/schema.sql` (source of truth, applied on first run)
+- Annotated doc: `project/SCHEMA.md` — **update in the same commit as any schema change**
+- The DB is writable and app-owned; the only external source (Open Food Facts) is read-only HTTP
+- Inspect with any SQLite browser or `python -c "import sqlite3; ..."` against `data/caffeine.db`
+
+## Key Conventions
+
+- **Concentration is stored as mg per 100 ml** (`drinks.caffeine_per_100ml`).
+  Dose formula: `caffeine_mg = volume_ml × caffeine_per_100ml ÷ 100`.
+  Example: 250 ml Red Bull at 32.0 → 80.0 mg.
+- **`caffeine_mg IS NULL` means "lookup pending"** — never 0. All
+  statistics must filter `WHERE caffeine_mg IS NOT NULL` and surface the
+  unresolved count.
+- **`drinks.lookup_status = 'pending'` is the offline lookup queue** — no
+  separate queue table.
+- **Entry doses are frozen at save time** (denormalised). Editing a
+  drink's concentration must NOT rewrite existing entries; the pending
+  back-fill (only rows with `caffeine_mg IS NULL`) is the sole exception.
+- Timestamps: TEXT ISO-8601 `YYYY-MM-DD HH:MM:SS`, **local time**.
+- Daily limit default 400 mg: seeded in `settings` table; UI edits win
+  over `config.yaml`.
+
+## Data Files
+
+| Path | What | Git-tracked |
+|------|------|-------------|
+| `data/caffeine.db` | All user data (runtime-generated) | **Never commit** |
+| `reference/caffeine_reference.json` | Bundled offline lookup table | Yes |
+| `config.yaml` | Port, DB path, lookup settings | Yes (no secrets in it) |
+| `venv/`, `__pycache__/` | Environment/build | Never commit |
+
+## Platform Constraints
+
+- Target: Windows 11, Python 3.12+, no admin rights required.
+- No OS-specific libraries planned; paths built with `pathlib` so the code
+  also runs on Linux. Flask binds to `127.0.0.1` only.
+- No hardware target → the Deployment Model stages in CLAUDE-COMMON
+  collapse to: code + test on the dev machine (which IS the target).
+
+## Known Technical Debt
+
+_None — no code yet._
+
+## Development Rules
+
+1. Backend-heavy: statistics and dose computation live in Python/SQL
+   (`stats.py`/`models.py`), never in JS. (PROJ_STARTER)
+2. `models.py`, `stats.py`, `lookup.py` must not import Flask — keeps them
+   unit-testable without the app context. (PROJECT_PLAN)
+3. No CDN assets — everything the UI needs is vendored in `app/static/`
+   so the app works offline. (REQUIREMENTS NFR-2)
+4. A failed or offline lookup must never block or lose an entry.
+   (REQUIREMENTS FR-4)
+5. Schema changes require updating `project/SCHEMA.md` in the same commit.
+   (CLAUDE-COMMON)
+6. All tunables in `config.yaml` or the `settings` table — no magic
+   numbers in code. (PROJ_STARTER)
+
+## Project TODO List
+
+Legend: 🔴 Bug / rule violation | 🟡 Incomplete feature | 🟢 Not started | ✅ Done
+
+- ✅ Project plan and documentation (this commit)
+- 🟢 Phase 1 — skeleton, DB, core entry (M1)
+- 🟢 Phase 2 — unknown drinks, lookup, offline queue (M2)
+- 🟢 Phase 3 — dashboard graphs & statistics (M3)
+- 🟢 Phase 4 — manage screens, polish, `start_tracker.bat` (M4)
+
+(Live tracker: `TODO.md` in the repo root.)
+
+## User Rules
+
+See `.CLAUDE/CLAUDE-COMMON.md` → Standard User Rules and
+`.CLAUDE/PROJ_STARTER.md` — both apply in full (opener "ok KLM",
+co-author trailer, explain-before-acting, DRY, pytest, YAML config,
+venv-first, TODO.md + Claude_log.md upkeep).
+
+### Project-Specific Overrides
+
+- Flask chosen over FastAPI and the web UI over Tkinter — decided and
+  recorded in `project/PROJECT_PLAN.md`; don't re-litigate unless
+  requirements change.

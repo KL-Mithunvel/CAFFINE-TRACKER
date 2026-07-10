@@ -10,10 +10,15 @@
 - [x] Phased project plan (`project/PROJECT_PLAN.md`) — architecture decisions, repo layout, Phases 1–4 with success criteria
 - [x] Project brief (`CLAUDE.md`) filled from the `.CLAUDE` template
 - [x] README with Windows 11 quickstart and document index
+- [x] Phase 1 — `app/schema.sql`, `app/db.py`, `app/models.py`, entry page + `/api/entries`, `main.py` (M1)
+- [x] Phase 2 — `app/lookup.py` (Open Food Facts → reference JSON → manual), offline pending queue + `LookupWorker` back-fill (M2)
+- [x] Phase 3 — `app/stats.py` (S1–S8), `/api/stats`, dashboard page with vendored Chart.js, settings screen (M3)
+- [x] Phase 4 — manage screen (edit/delete entries + drinks), back-dating, `start_tracker.bat`, `setup.sh` (M4)
+- [x] `tests/` — 55 pytest tests across models/stats/lookup/routes, all green
+- [x] Manual end-to-end smoke test: ran `main.py`, exercised entry/dashboard/manage/settings via curl, confirmed offline-pending → manual-resolve → back-fill flow works
+- [x] Fixed bug found during smoke test: manual drink-value edits via `PUT /api/drinks/<id>` now back-fill pending entries (previously only the lookup-chain path did)
 
 ## Not Started
 
-- [ ] Phase 1 — scaffolding, `schema.sql` + seeds, `db.py`, `models.py`, minimal entry page, `run.py`, `tests/test_models.py` (M1)
-- [ ] Phase 2 — `lookup.py` chain (Open Food Facts → reference JSON → manual), offline pending queue + back-fill worker, `tests/test_lookup.py` (M2)
-- [ ] Phase 3 — `stats.py` (S1–S8), `/api/stats`, dashboard page with Chart.js, settings screen for daily limit, `tests/test_stats.py` (M3)
-- [ ] Phase 4 — manage entries/drinks screens, back-dating, `start_tracker.bat`, docs finalization, end-to-end Windows 11 test (M4)
+- [ ] Verify the live Open Food Facts lookup against the real API on a machine with normal internet access (this dev sandbox has no route to `world.openfoodfacts.org`; the chain is covered by mocked-HTTP tests only)
+- [ ] Verify on an actual Python 3.12 interpreter on Windows 11 (developed/tested here on Python 3.11)

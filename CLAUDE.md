@@ -13,12 +13,13 @@ caffeinated drinks in ml and visualising intake statistics against the
 recommended 400 mg/day limit.
 
 - Author/owner: kl mithunvel · License: MIT
-- Entry point: `run.py` (starts Flask on `http://127.0.0.1:5000`, opens browser)
+- Entry point: `main.py` (starts Flask on `http://127.0.0.1:5000`, opens browser)
 - Minimum runtime: Python 3.12, Windows 11 (also runs on Linux — no OS-specific code planned)
 - Core docs: `project/REQUIREMENTS.md`, `project/PROJECT_PLAN.md`, `project/SCHEMA.md`
 
-**Current status: planning phase — no application code exists yet.**
-Implementation follows the 4 phases in `project/PROJECT_PLAN.md`.
+**Current status: Phases 1–4 implemented.** Full app (entry, dashboard,
+manage, settings, offline lookup queue) is built and tested. See
+`project/PROJECT_PLAN.md` for phase detail.
 
 ---
 
@@ -28,9 +29,9 @@ Implementation follows the 4 phases in `project/PROJECT_PLAN.md`.
 :: Windows — always activate the venv first
 venv\Scripts\activate
 
-python run.py            :: start the app (once Phase 1 lands)
+python main.py            :: start the app (once Phase 1 lands)
 pytest tests/            :: run tests
-python -m py_compile app\*.py run.py   :: minimum lint
+python -m py_compile app\*.py main.py   :: minimum lint
 ```
 
 One-time setup: `python -m venv venv`, activate, `pip install -r requirements.txt`.
@@ -44,7 +45,7 @@ Planned module responsibilities (see `project/PROJECT_PLAN.md` for the full layo
 
 | File | Role |
 |------|------|
-| `run.py` | Entry point: init DB, start lookup worker, open browser, run Flask |
+| `main.py` | Entry point: init DB, start lookup worker, open browser, run Flask |
 | `app/db.py` | SQLite connection, init/seed from `app/schema.sql` |
 | `app/models.py` | CRUD for drinks/entries/settings — pure functions, no Flask imports |
 | `app/stats.py` | All dashboard statistics — pure functions, no Flask imports |
@@ -115,7 +116,14 @@ No simulation/hardware split — the dev machine is the target machine.
 
 ## Known Technical Debt
 
-_None — no code yet._
+- Dev/CI sandbox has no outbound route to `world.openfoodfacts.org`, so the
+  internet-lookup leg of the chain is untested against the live API in this
+  environment (verified via mocked `requests.get` in `tests/test_lookup.py`
+  instead). Verify against the real API on a machine with normal internet
+  access before relying on it.
+- Dev container ships Python 3.11; the project targets 3.12+ per
+  REQUIREMENTS.md. Code avoids 3.12-only syntax so it runs on both, but this
+  hasn't been verified on an actual 3.12 interpreter.
 
 ## Development Rules
 
@@ -136,11 +144,12 @@ _None — no code yet._
 
 Legend: 🔴 Bug / rule violation | 🟡 Incomplete feature | 🟢 Not started | ✅ Done
 
-- ✅ Project plan and documentation (this commit)
-- 🟢 Phase 1 — skeleton, DB, core entry (M1)
-- 🟢 Phase 2 — unknown drinks, lookup, offline queue (M2)
-- 🟢 Phase 3 — dashboard graphs & statistics (M3)
-- 🟢 Phase 4 — manage screens, polish, `start_tracker.bat` (M4)
+- ✅ Project plan and documentation
+- ✅ Phase 1 — skeleton, DB, core entry (M1)
+- ✅ Phase 2 — unknown drinks, lookup, offline queue (M2)
+- ✅ Phase 3 — dashboard graphs & statistics (M3)
+- ✅ Phase 4 — manage screens, polish, `start_tracker.bat` (M4)
+- 🟡 Live internet-lookup path unverified in this sandbox (see Known Technical Debt)
 
 (Live tracker: `TODO.md` in the repo root.)
 

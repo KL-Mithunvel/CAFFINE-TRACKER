@@ -26,7 +26,7 @@ model is in `project/SCHEMA.md`.
 
 ```
 CAFFINE-TRACKER/
-├── run.py                  # entry point: init db, start lookup worker, open browser, run Flask
+├── main.py                  # entry point: init db, start lookup worker, open browser, run Flask
 ├── config.yaml             # port, db path, lookup settings, default limit
 ├── requirements.txt
 ├── app/
@@ -60,12 +60,12 @@ is vendored as a static file, not a pip package.
 3. `app/db.py` — connect (with `PRAGMA foreign_keys=ON`), init-if-missing, seed-if-empty.
 4. `app/models.py` — `add_entry`, `list_entries`, `get_drink_by_name`, `add_drink`, dose computation.
 5. Minimal `routes.py` + `entry.html`: preset buttons, volume pre-fill, save, list of today's entries with running total.
-6. `run.py` entry point; `tests/test_models.py`.
+6. `main.py` entry point; `tests/test_models.py`.
 
 **Files:** everything under the layout above except `stats.py`, `lookup.py`, dashboard/manage templates.
 
 **Success criteria**
-- `python run.py` on Windows 11 opens the entry page; clicking *Red Bull* → 250 ml pre-filled → save → entry stored with 80.0 mg.
+- `python main.py` on Windows 11 opens the entry page; clicking *Red Bull* → 250 ml pre-filled → save → entry stored with 80.0 mg.
 - Volume ≤ 0 rejected with a clear message; `pytest` green.
 
 ## Phase 2 — Unknown drinks, internet lookup, offline queue
@@ -106,7 +106,7 @@ is vendored as a static file, not a pip package.
 **Steps**
 1. Manage screen: edit/delete entries; edit drinks; delete-drink blocked when entries exist (surfaces the RESTRICT nicely).
 2. Edit `consumed_at` for back-dated entries.
-3. `run.py` polish: auto-open browser, port-in-use message, first-run welcome.
+3. `main.py` polish: auto-open browser, port-in-use message, first-run welcome.
 4. `start_tracker.bat` — double-click launcher (create venv if missing, install deps, run).
 5. Docs finalization: README quickstart verified on a clean machine, CLAUDE.md sections filled from reality, backup note (`copy data\caffeine.db`).
 6. Full `pytest` pass + manual end-to-end on Windows 11.

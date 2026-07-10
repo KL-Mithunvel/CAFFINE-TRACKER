@@ -16,8 +16,8 @@ often you exceed the recommended 400 mg/day limit.
   pattern, streaks.
 - **Private** — everything lives in one SQLite file on your laptop.
 
-**Status: planning complete, implementation not started.**
-See the documents below for the full plan.
+**Status: implemented.** All 4 phases are built and covered by tests
+(`pytest tests/` — 55 passing). See the documents below for design detail.
 
 ## Documents
 
@@ -47,7 +47,7 @@ cd CAFFINE-TRACKER
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-python run.py
+python main.py
 ```
 
 The app opens in your default browser. From Phase 4 onward,

@@ -127,3 +127,53 @@
   tested from the Desktop in this session (the equivalent console launch
   was already verified above), so the owner should confirm the first
   double-click works as expected.
+
+## 2026-07-12 — Verified view/edit + offline behavior; fixed consumed_at edit gap on Manage page
+
+- Owner asked for (1) the ability to view/edit logged data to remove bad
+  entries, and (2) the app to work regardless of wifi, storing unresolved
+  drinks and sorting them out automatically once online. Investigated
+  before changing anything, since both sounded like they might already be
+  covered by Phase 2/4 work.
+- Confirmed (2) already works, and verified it live rather than just by
+  reading code: this sandbox has no route to `world.openfoodfacts.org`
+  (see Known Technical Debt), so POSTing an entry for a made-up drink name
+  is a genuine offline test. It returned in ~1.4s with the entry saved
+  (`caffeine_mg: null`) and the drink stored as `lookup_status: "pending"`
+  — nothing blocked or lost. Resolution already happens automatically via
+  `run_pending_sweep` on every startup and `LookupWorker` every
+  `lookup.retry_minutes` (config.yaml, default 5) while running, with
+  back-fill of any already-logged entries once a drink resolves. No code
+  changes needed for this part.
+- Confirmed (1) is also mostly already built: the Manage page
+  (`app/templates/manage.html` + `app/static/app.js`) has click-to-edit
+  cells for entry volume/notes and drink concentration/serving size, plus
+  delete buttons for both entries and drinks (delete-drink blocked while
+  referenced).
+- Found one real gap while checking this against `project/PROJECT_PLAN.md`
+  (Phase 4 claimed "edit consumed_at for back-dated entries" as done): the
+  Manage page rendered an entry's date and time as plain text, not
+  editable, even though `PUT /api/entries/<id>` already accepted
+  `consumed_at` and `models.update_entry` had no validation blocking it —
+  only the frontend wiring was missing.
+- Fixed: `manage.html` now renders the date and time cells with
+  `class="editable"` and a `data-value` attribute (the two cells share one
+  `consumed_at` column). `app.js` gained `makeDateTimeEditable()`, a
+  dedicated handler (separate from the generic single-field `makeEditable`
+  used for volume/notes) that opens a native `<input type="date">` or
+  `<input type="time">` on click, reads the sibling cell's currently-saved
+  value so only one field needs to change, and PUTs the combined
+  `"YYYY-MM-DD HH:MM:SS"` string — same format `now_local()` and the entry
+  page's `toStorageTimestamp()` already use. Added a hint line under the
+  entries table matching the existing one under the drinks table.
+- Verified end-to-end with a live server (not just unit tests, since this
+  is frontend wiring pytest doesn't cover): added a "Coffee" entry dated
+  2026-07-10, `PUT` its `consumed_at` to 2026-07-09 14:30 (the same call
+  the new JS makes), then fetched `/manage` and confirmed the rendered
+  `data-field="consumed_at_date"`/`consumed_at_time` cells reflected the
+  new value. Cleared the test database afterward so the app reseeds fresh
+  on next real launch.
+- `pytest tests/` — 55/55 still pass (this change is template/JS only, not
+  covered by the existing backend test suite, but nothing backend changed
+  either).
+- Nothing left incomplete for this request.

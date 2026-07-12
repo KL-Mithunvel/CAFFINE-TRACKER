@@ -21,6 +21,7 @@
 - [x] `scripts/create_desktop_shortcut.ps1` — one-time script that creates a silent "Caffeine Tracker" Desktop shortcut targeting `.venv\Scripts\pythonw.exe main.py`
 - [x] Fixed pre-existing bug in `start_tracker.bat`: referenced `venv\` but the actual virtualenv folder is `.venv\`
 - [x] Docs updated in the same commit: `CLAUDE.md`, `project/PROJECT_PLAN.md`, `README.md` (per Documentation Discipline)
+- [x] Fixed gap on the Manage page: date/time (`consumed_at`) of an entry is now click-to-edit (was previously view-only despite the backend and PROJECT_PLAN Phase 4 already covering it) — lets the owner correct mis-timed entries without deleting them
 
 ## Not Started
 

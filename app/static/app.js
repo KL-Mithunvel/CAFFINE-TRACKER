@@ -118,12 +118,60 @@ function initManagePage() {
     });
   }
 
+  // Date and time live in separate cells but share one consumed_at column,
+  // so editing either one re-sends the combined timestamp.
+  function makeDateTimeEditable(dateCell, timeCell, entryId) {
+    function attach(cell, inputType) {
+      cell.addEventListener("click", () => {
+        if (cell.querySelector("input")) return;
+        const original = cell.textContent.trim();
+        const input = document.createElement("input");
+        input.type = inputType;
+        input.value = cell.dataset.value;
+        cell.textContent = "";
+        cell.appendChild(input);
+        input.focus();
+
+        const commit = async () => {
+          if (!input.value) { cell.textContent = original; return; }
+          if (input.value === cell.dataset.value) { cell.textContent = original; return; }
+          const dateVal = inputType === "date" ? input.value : dateCell.dataset.value;
+          const timeVal = inputType === "time" ? input.value : timeCell.dataset.value;
+          cell.textContent = input.value;
+          try {
+            await apiFetch(`/api/entries/${entryId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consumed_at: `${dateVal} ${timeVal}:00` }),
+            });
+            cell.dataset.value = input.value;
+          } catch (err) {
+            alert(err.message);
+            cell.textContent = original;
+          }
+        };
+        input.addEventListener("blur", commit);
+        input.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") input.blur();
+          if (ev.key === "Escape") { cell.textContent = original; }
+        });
+      });
+    }
+    attach(dateCell, "date");
+    attach(timeCell, "time");
+  }
+
   if (entriesTable) {
     entriesTable.querySelectorAll("tbody tr[data-entry-id]").forEach((row) => {
       const entryId = row.dataset.entryId;
+      const dateCell = row.querySelector('[data-field="consumed_at_date"]');
+      const timeCell = row.querySelector('[data-field="consumed_at_time"]');
+      if (dateCell && timeCell) makeDateTimeEditable(dateCell, timeCell, entryId);
+
       row.querySelectorAll(".editable").forEach((cell) => {
+        const field = cell.dataset.field;
+        if (field === "consumed_at_date" || field === "consumed_at_time") return;
         makeEditable(cell, async (value) => {
-          const field = cell.dataset.field;
           const body = {};
           body[field] = field === "volume_ml" ? parseFloat(value) : value;
           await apiFetch(`/api/entries/${entryId}`, {

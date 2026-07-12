@@ -13,12 +13,16 @@ caffeinated drinks in ml and visualising intake statistics against the
 recommended 400 mg/day limit.
 
 - Author/owner: kl mithunvel · License: MIT
-- Entry point: `main.py` (starts Flask on `http://127.0.0.1:5000`, opens browser)
+- Entry point: `main.py` (starts Flask on `http://127.0.0.1:5000` in a
+  background thread, opens it in a native `pywebview` window — no browser)
 - Minimum runtime: Python 3.12, Windows 11 (also runs on Linux — no OS-specific code planned)
 - Core docs: `project/REQUIREMENTS.md`, `project/PROJECT_PLAN.md`, `project/SCHEMA.md`
 
-**Current status: Phases 1–4 implemented.** Full app (entry, dashboard,
-manage, settings, offline lookup queue) is built and tested. See
+**Current status: Phases 1–4 implemented, plus a native-GUI migration.**
+Full app (entry, dashboard, manage, settings, offline lookup queue) is
+built and tested. The browser UI was replaced with a `pywebview` desktop
+window on 2026-07-11 (owner-requested; see Development Rules → Project-
+Specific Overrides), with a silent desktop shortcut launcher. See
 `project/PROJECT_PLAN.md` for phase detail.
 
 ---
@@ -26,16 +30,23 @@ manage, settings, offline lookup queue) is built and tested. See
 ## Running the System
 
 ```bat
-:: Windows — always activate the venv first
-venv\Scripts\activate
+:: Windows — always activate the venv first (the venv folder here is .venv)
+.venv\Scripts\activate
 
-python main.py            :: start the app (once Phase 1 lands)
+python main.py            :: start the app — opens a native GUI window
 pytest tests/            :: run tests
 python -m py_compile app\*.py main.py   :: minimum lint
 ```
 
-One-time setup: `python -m venv venv`, activate, `pip install -r requirements.txt`.
+One-time setup: `python -m venv .venv`, activate, `pip install -r requirements.txt`.
 The SQLite DB is created and seeded automatically on first run — no manual step.
+
+**Desktop shortcut:** run `powershell -File scripts\create_desktop_shortcut.ps1`
+once to create a "Caffeine Tracker" shortcut on the Desktop. It launches via
+`.venv\Scripts\pythonw.exe` (no console window); diagnostics go to
+`logs\caffeine_tracker.log` instead of stdout since there's no console to
+print to. `start_tracker.bat` remains the console-visible/dev launcher
+(creates the venv if missing, installs deps, runs `main.py`).
 
 ---
 
@@ -45,7 +56,7 @@ Planned module responsibilities (see `project/PROJECT_PLAN.md` for the full layo
 
 | File | Role |
 |------|------|
-| `main.py` | Entry point: init DB, start lookup worker, open browser, run Flask |
+| `main.py` | Entry point: init DB, start lookup worker, run Flask in a background thread, open a native `pywebview` window pointed at it |
 | `app/db.py` | SQLite connection, init/seed from `app/schema.sql` |
 | `app/models.py` | CRUD for drinks/entries/settings — pure functions, no Flask imports |
 | `app/stats.py` | All dashboard statistics — pure functions, no Flask imports |
@@ -54,7 +65,7 @@ Planned module responsibilities (see `project/PROJECT_PLAN.md` for the full layo
 | `app/templates/`, `app/static/` | Jinja2 pages, vanilla JS, vendored Chart.js |
 
 ```
-Browser (entry form / dashboard)
+pywebview native window (entry form / dashboard)
    │ HTTP (localhost only)
    ▼
 routes.py ──► models.py ──► SQLite data/caffeine.db
@@ -66,8 +77,12 @@ stats.py      lookup.py ◄── daemon thread (retry every N min)
           Open Food Facts API
 ```
 
-Threading model: single Flask thread + one daemon `threading.Thread` for
-pending lookups. SQLite connections are per-thread (never shared).
+Threading model: `main.py`'s main thread runs the `pywebview` GUI event
+loop (`webview.start()` blocks until the window closes); Flask runs in one
+daemon `threading.Thread` started before the window opens; a second daemon
+`threading.Thread` retries pending lookups. SQLite connections are
+per-thread (never shared). Closing the window ends the process, which
+kills both daemon threads.
 
 No simulation/hardware split — the dev machine is the target machine.
 
@@ -104,7 +119,8 @@ No simulation/hardware split — the dev machine is the target machine.
 | `data/caffeine.db` | All user data (runtime-generated) | **Never commit** |
 | `reference/caffeine_reference.json` | Bundled offline lookup table | Yes |
 | `config.yaml` | Port, DB path, lookup settings | Yes (no secrets in it) |
-| `venv/`, `__pycache__/` | Environment/build | Never commit |
+| `logs/caffeine_tracker.log` | Runtime log (stands in for console output when launched silently via `pythonw.exe`) | **Never commit** |
+| `.venv/`, `__pycache__/` | Environment/build | Never commit |
 
 ## Platform Constraints
 
@@ -149,6 +165,8 @@ Legend: 🔴 Bug / rule violation | 🟡 Incomplete feature | 🟢 Not started |
 - ✅ Phase 2 — unknown drinks, lookup, offline queue (M2)
 - ✅ Phase 3 — dashboard graphs & statistics (M3)
 - ✅ Phase 4 — manage screens, polish, `start_tracker.bat` (M4)
+- ✅ Native GUI migration — `pywebview` window replaces browser tab, silent
+  desktop shortcut via `scripts/create_desktop_shortcut.ps1` (2026-07-11)
 - 🟡 Live internet-lookup path unverified in this sandbox (see Known Technical Debt)
 
 (Live tracker: `TODO.md` in the repo root.)
@@ -162,6 +180,12 @@ venv-first, TODO.md + Claude_log.md upkeep).
 
 ### Project-Specific Overrides
 
-- Flask chosen over FastAPI and the web UI over Tkinter — decided and
-  recorded in `project/PROJECT_PLAN.md`; don't re-litigate unless
-  requirements change.
+- Flask chosen over FastAPI — decided and recorded in
+  `project/PROJECT_PLAN.md`; don't re-litigate unless requirements change.
+- **2026-07-11 update:** the browser-tab UI (originally chosen over Tkinter
+  for Chart.js) was replaced at the owner's explicit request with a native
+  `pywebview` window wrapping the same Flask backend and Chart.js
+  dashboard — keeps the charts, drops the browser chrome. See
+  `project/PROJECT_PLAN.md` → Architecture Decisions for the updated row
+  and rationale. Don't re-litigate this either unless requirements change
+  again.

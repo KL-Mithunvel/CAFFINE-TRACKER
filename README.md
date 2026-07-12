@@ -32,11 +32,12 @@ often you exceed the recommended 400 mg/day limit.
 ## Tech stack
 
 Python 3.12+ · Flask · SQLite · vanilla JS + Chart.js (bundled locally) ·
-YAML config · pytest. The UI is a local web page at
-`http://127.0.0.1:5000` — nothing leaves your machine except read-only
-caffeine lookups.
+`pywebview` · YAML config · pytest. Flask serves the app on
+`127.0.0.1` in a background thread; `pywebview` opens it in a native
+desktop window (no browser tab) — nothing leaves your machine except
+read-only caffeine lookups.
 
-## Running on Windows 11 (once implemented)
+## Running on Windows 11
 
 Prerequisite: [Python 3.12+](https://www.python.org/downloads/windows/)
 with "Add python.exe to PATH" ticked during install.
@@ -44,14 +45,25 @@ with "Add python.exe to PATH" ticked during install.
 ```bat
 git clone https://github.com/KL-Mithunvel/CAFFINE-TRACKER.git
 cd CAFFINE-TRACKER
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 python main.py
 ```
 
-The app opens in your default browser. From Phase 4 onward,
-double-clicking `start_tracker.bat` does all of the above for you.
+The app opens in its own window — not a browser tab. Double-clicking
+`start_tracker.bat` does all of the above for you (creates the venv,
+installs deps, runs `main.py`) with a visible console for logs/errors.
+
+**Desktop shortcut:** run this once —
+
+```bat
+powershell -File scripts\create_desktop_shortcut.ps1
+```
+
+— to add a "Caffeine Tracker" shortcut to your Desktop that launches
+silently (no console window). If something goes wrong with a silent
+launch, check `logs\caffeine_tracker.log`.
 
 **Backup:** copy `data\caffeine.db` anywhere — that one file is all your
 data.

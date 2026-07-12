@@ -12,7 +12,7 @@ model is in `project/SCHEMA.md`.
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Language | Python 3.12+ | Owner's primary stack |
-| App shape | Local Flask web app at `http://127.0.0.1:5000`, opened in the default browser | Dashboard needs good charts; Chart.js in a browser beats matplotlib-in-Tkinter for interactive graphs. Tkinter (the usual desktop default) was considered and rejected for this reason |
+| App shape | Local Flask web app at `http://127.0.0.1:5000`, rendered in a native `pywebview` desktop window (no browser tab/chrome) | **Updated 2026-07-11**, owner-requested. Originally opened in the default browser — see history below. Chart.js still needs a web renderer for the dashboard graphs, so the Flask backend and HTML/JS frontend are unchanged; `pywebview` wraps them in a real window instead of a browser tab, giving a desktop-app feel without a Tkinter rewrite (which would need matplotlib-in-Tkinter to replace Chart.js) |
 | Backend framework | Flask | Single-user, synchronous, tiny JSON API — FastAPI's async/typing benefits don't apply here (flagged per stack rules; Flask is the right fit) |
 | Database | SQLite via Python stdlib `sqlite3` | Preferred local store; zero setup; single-file backup |
 | Frontend | Server-rendered Jinja2 + vanilla JS + Chart.js **bundled in `static/`** | Thin frontend; no CDN so the app works fully offline (NFR-2) |
@@ -20,15 +20,32 @@ model is in `project/SCHEMA.md`.
 | Offline queue | `drinks.lookup_status='pending'` + background `threading.Thread` retrying every 5 min and on startup | No extra queue table; worker only does read-only GETs |
 | Config | `config.yaml` (port, db path, lookup URLs, defaults) | Owner standard; no magic numbers |
 | Packaging | `pip` + `venv`, `requirements.txt` | Owner standard. **Flagged:** `uv` is the recommended modern replacement — adopt when the migration happens |
+| Desktop launch | `scripts/create_desktop_shortcut.ps1` creates a Desktop `.lnk` targeting `.venv\Scripts\pythonw.exe main.py` | Owner-requested one-click launch (2026-07-11); `pythonw.exe` gives a console-free launch. `start_tracker.bat` (console-visible) remains as the dev/setup launcher |
 | Tests | `pytest`, in `tests/`, in-memory SQLite + mocked HTTP | Owner standard |
+
+**App-shape history:** Phase 1–4 shipped with the app opened in the
+default browser (see Milestones below). On 2026-07-11 the owner asked for
+a real desktop GUI instead. Two options were weighed: (a) wrap the
+existing Flask/Chart.js app in a `pywebview` native window — small diff,
+keeps the dashboard graphs; (b) rewrite the whole UI in Tkinter with
+matplotlib charts — matches the original Tkinter-by-default preference
+exactly, but is a large rewrite touching every screen. The owner chose (a).
+`main.py` now runs Flask in a background thread and opens `pywebview` on
+the main thread instead of calling `webbrowser.open()`. Because the
+desktop shortcut launches via `pythonw.exe` (no console), `main.py` also
+guards against `sys.stdout`/`sys.stderr` being `None` and logs to
+`logs/caffeine_tracker.log` instead of relying on console output.
 
 ## Planned Repository Layout
 
 ```
 CAFFINE-TRACKER/
-├── main.py                  # entry point: init db, start lookup worker, open browser, run Flask
+├── main.py                  # entry point: init db, start lookup worker, run Flask in a thread, open pywebview window
 ├── config.yaml             # port, db path, lookup settings, default limit
 ├── requirements.txt
+├── scripts/
+│   └── create_desktop_shortcut.ps1   # one-time: creates the silent Desktop launcher
+├── logs/                   # runtime: caffeine_tracker.log (git-ignored)
 ├── app/
 │   ├── __init__.py         # Flask app factory
 │   ├── schema.sql          # DDL + preset seed rows (source of truth for SCHEMA.md)
@@ -45,8 +62,8 @@ CAFFINE-TRACKER/
 └── project/                # these documents
 ```
 
-Dependencies: `flask`, `requests`, `pyyaml` (+ `pytest` for dev). Chart.js
-is vendored as a static file, not a pip package.
+Dependencies: `flask`, `requests`, `pyyaml`, `pywebview` (+ `pytest` for dev).
+Chart.js is vendored as a static file, not a pip package.
 
 ---
 

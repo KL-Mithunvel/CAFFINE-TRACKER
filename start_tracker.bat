@@ -4,12 +4,12 @@ REM Creates the venv if missing, installs dependencies, then starts the app.
 setlocal
 cd /d "%~dp0"
 
-if not exist venv (
+if not exist .venv (
     echo Creating virtual environment...
-    python -m venv venv
+    python -m venv .venv
 )
 
-call venv\Scripts\activate.bat
+call .venv\Scripts\activate.bat
 pip install --upgrade pip >nul
 pip install -r requirements.txt
 

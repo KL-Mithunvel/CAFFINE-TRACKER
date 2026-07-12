@@ -17,6 +17,10 @@
 - [x] `tests/` — 55 pytest tests across models/stats/lookup/routes, all green
 - [x] Manual end-to-end smoke test: ran `main.py`, exercised entry/dashboard/manage/settings via curl, confirmed offline-pending → manual-resolve → back-fill flow works
 - [x] Fixed bug found during smoke test: manual drink-value edits via `PUT /api/drinks/<id>` now back-fill pending entries (previously only the lookup-chain path did)
+- [x] Native GUI migration: `main.py` now runs Flask in a background thread and opens a `pywebview` window instead of the browser (owner-requested); `config.yaml`'s `open_browser` key removed; `sys.stdout`/`stderr` guarded and logging moved to `logs/caffeine_tracker.log` for the console-free launch path
+- [x] `scripts/create_desktop_shortcut.ps1` — one-time script that creates a silent "Caffeine Tracker" Desktop shortcut targeting `.venv\Scripts\pythonw.exe main.py`
+- [x] Fixed pre-existing bug in `start_tracker.bat`: referenced `venv\` but the actual virtualenv folder is `.venv\`
+- [x] Docs updated in the same commit: `CLAUDE.md`, `project/PROJECT_PLAN.md`, `README.md` (per Documentation Discipline)
 
 ## Not Started
 

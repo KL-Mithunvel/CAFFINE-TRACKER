@@ -53,8 +53,9 @@ def _lookup_open_food_facts(name: str, config: dict) -> tuple[float | None, bool
         "json": 1,
         "page_size": 5,
     }
+    headers = {"User-Agent": config["lookup"]["user_agent"]}
     try:
-        resp = requests.get(url, params=params, timeout=timeout)
+        resp = requests.get(url, params=params, timeout=timeout, headers=headers)
         resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         logger.info("Open Food Facts unreachable for %r: %s", name, exc)

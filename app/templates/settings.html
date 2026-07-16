@@ -16,6 +16,13 @@
   "above limit" statistic on the dashboard.</p>
 </section>
 
+<section class="card">
+  <h1>Data Export</h1>
+  <a href="{{ url_for('main.api_export_pdf') }}" class="primary-btn" download>Export PDF Report</a>
+  <p class="muted">Generates a structured PDF with your summary statistics, per-drink
+  breakdown, and full entry log.</p>
+</section>
+
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='app.js') }}"></script>

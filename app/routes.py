@@ -1,9 +1,9 @@
 """HTTP layer only — thin, delegates all logic to models/stats/lookup."""
 import sqlite3
 
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, Response, jsonify, render_template, request
 
-from app import db, lookup, models, stats
+from app import db, lookup, models, pdf_export, stats
 
 bp = Blueprint("main", __name__)
 
@@ -178,6 +178,18 @@ def api_stats():
 def api_get_settings():
     conn = _conn()
     return jsonify({"daily_limit_mg": models.get_daily_limit_mg(conn)})
+
+
+@bp.route("/api/export/pdf", methods=["GET"])
+def api_export_pdf():
+    conn = _conn()
+    pdf_bytes = pdf_export.build_report_pdf(conn)
+    filename = f"caffeine-tracker-report-{_today()}.pdf"
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @bp.route("/api/settings", methods=["PUT"])

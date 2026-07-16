@@ -12,6 +12,8 @@ database:
 lookup:
   # Open Food Facts search endpoint (read-only GET, no API key needed)
   open_food_facts_url: "https://world.openfoodfacts.org/cgi/search.pl"
+  # Open Food Facts rejects requests with no/generic User-Agent (403) — required by their API usage policy
+  user_agent: "CaffeineTracker/1.0 (contact: klm@smtw.in)"
   request_timeout_seconds: 4
   reference_file: "reference/caffeine_reference.json"
   # How often the background worker retries drinks stuck in lookup_status='pending'

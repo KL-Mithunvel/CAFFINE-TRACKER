@@ -22,6 +22,8 @@
 - [x] Fixed pre-existing bug in `start_tracker.bat`: referenced `venv\` but the actual virtualenv folder is `.venv\`
 - [x] Docs updated in the same commit: `CLAUDE.md`, `project/PROJECT_PLAN.md`, `README.md` (per Documentation Discipline)
 - [x] Fixed gap on the Manage page: date/time (`consumed_at`) of an entry is now click-to-edit (was previously view-only despite the backend and PROJECT_PLAN Phase 4 already covering it) — lets the owner correct mis-timed entries without deleting them
+- [x] `scripts/seed_fake_data.py` fills through `date.today()` and is now re-runnable (skips days that already have entries) — backfilled 2026-07-10 → 2026-08-31, 53 continuous days
+- [x] Fixed the "Daily intake trend" dashboard chart collapsing to a thin strip — `.chart-wrap` now has an explicit height (`maintainAspectRatio:false` needs it); trend chart gets a taller `.chart-wrap-trend`
 
 ## Not Started
 

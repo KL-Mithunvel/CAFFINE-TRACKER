@@ -1,5 +1,22 @@
 # Claude Log
 
+## 2026-08-31 — Fake-data backfill to date + dashboard trend chart fix
+
+- `scripts/seed_fake_data.py`: `END_DATE` is now `date.today()` (was
+  hard-coded 2026-08-21) so it always fills through the current day. Made
+  it idempotent — days that already have entries are skipped, so re-running
+  only fills gaps and never doubles history or touches real entries. Added
+  a `sys.path` bootstrap so it runs as documented (`python scripts/seed_fake_data.py`)
+  without `ModuleNotFoundError`.
+- Ran it: backfilled the 2026-08-22 … 2026-08-31 gap (19 entries); DB now
+  has continuous data 2026-07-10 → 2026-08-31 (53 days, 149 entries).
+- Fixed the "Daily intake trend" chart being squashed into an unreadable
+  strip: its canvas had `height="90"` with `maintainAspectRatio:false` and
+  `.chart-wrap` had no height, so the chart collapsed. `.chart-wrap` now
+  has an explicit height (260px; `.chart-wrap-trend` 380px), canvas height
+  attributes removed. All 3 dashboard charts affected.
+- `pytest`: 55 passed. Dashboard + `/api/stats` smoke-tested across all ranges.
+
 ## 2026-07-10 — Project planning: full plan and documents for the Caffeine Tracker app
 
 - Bootstrapped this repo as the Caffeine Tracker project following the

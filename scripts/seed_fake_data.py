@@ -2,19 +2,26 @@
 dashboard/stats code can be exercised with a realistic-looking dataset.
 
 Does NOT touch existing rows — only appends new entries dated from the
-project's first commit (2026-07-10) through today. Uses app.models.add_entry
-so every dose is computed the normal way (volume_ml * caffeine_per_100ml / 100).
+project's first commit (2026-07-10) through today. Any day that already has
+at least one entry is left untouched, so this is safe to re-run: it just
+fills in the days that are still empty (e.g. after time has passed since the
+last run). Uses app.models.add_entry so every dose is computed the normal
+way (volume_ml * caffeine_per_100ml / 100).
 
-Run once, from the venv:
+Run from the venv:
     .venv\\Scripts\\python scripts\\seed_fake_data.py
 """
 import random
+import sys
 from datetime import date, timedelta
+from pathlib import Path
 
-from app import db, models
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from app import db, models  # noqa: E402  (after sys.path setup)
 
 START_DATE = date(2026, 7, 10)   # project start (git log)
-END_DATE = date(2026, 8, 21)     # today
+END_DATE = date.today()          # fill through today, whenever this is run
 DOUBLE_START = date(2026, 8, 8)
 DOUBLE_END = date(2026, 8, 18)
 
@@ -75,9 +82,20 @@ def main() -> None:
     drinks = models.list_drinks(conn, presets_only=True)
     drinks_by_name = {d["name"]: d for d in drinks}
 
+    existing_days = {
+        row["day"]
+        for row in conn.execute("SELECT DISTINCT date(consumed_at) AS day FROM entries")
+    }
+
     total_entries = 0
+    skipped_days = 0
     day = START_DATE
     while day <= END_DATE:
+        if day.isoformat() in existing_days:
+            skipped_days += 1
+            day += timedelta(days=1)
+            continue
+
         target_mg, day_kind = day_target_mg(day)
         pool = pick_pool(day_kind, drinks_by_name)
         n = entry_count_for(day_kind)
@@ -97,7 +115,10 @@ def main() -> None:
 
         day += timedelta(days=1)
 
-    print(f"Inserted {total_entries} fake entries from {START_DATE} to {END_DATE}.")
+    print(
+        f"Inserted {total_entries} fake entries from {START_DATE} to {END_DATE} "
+        f"({skipped_days} day(s) already had entries and were left untouched)."
+    )
 
 
 if __name__ == "__main__":

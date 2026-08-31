@@ -158,10 +158,15 @@ input[type="text"], input[type="number"], input[type="datetime-local"] {
 .stat-value { font-size: 1.7rem; font-weight: 700; margin: 0.3rem 0; }
 .stat-sub { font-size: 0.85rem; color: var(--text-muted); }
 
-.chart-wrap { position: relative; width: 100%; }
+/* Charts use maintainAspectRatio:false, so the wrapper's height is the
+   chart's height — it must be set explicitly or the canvas collapses. */
+.chart-wrap { position: relative; width: 100%; height: 260px; }
+.chart-wrap-trend { height: 380px; }
 .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 .chart-half { min-width: 0; }
 @media (max-width: 700px) {
   .chart-row { grid-template-columns: 1fr; }
   .container { padding: 1rem; }
+  .chart-wrap { height: 240px; }
+  .chart-wrap-trend { height: 300px; }
 }

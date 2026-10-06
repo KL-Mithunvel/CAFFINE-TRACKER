@@ -16,7 +16,7 @@ recommended 400 mg/day limit.
 - Entry point: `main.py` (starts Flask on `http://127.0.0.1:5000` in a
   background thread, opens it in a native `pywebview` window — no browser)
 - Minimum runtime: Python 3.12, Windows 11 (also runs on Linux — no OS-specific code planned)
-- Core docs: `project/REQUIREMENTS.md`, `project/PROJECT_PLAN.md`, `project/SCHEMA.md`
+- Core docs: `project/REQUIREMENTS.md`, `project/PROJECT_PLAN.md`, `project/SCHEMA.md`, `project/PROJECT_REPORT.md` (mini-project report; PDF + screenshots in `docs/`)
 
 **Current status: Phases 1–4 implemented, plus a native-GUI migration.**
 Full app (entry, dashboard, manage, settings, offline lookup queue) is

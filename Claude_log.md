@@ -194,3 +194,11 @@
   covered by the existing backend test suite, but nothing backend changed
   either).
 - Nothing left incomplete for this request.
+
+## 2026-10-06 — Mini-project submission pack (report, screenshots, README)
+- Owner needs a GitHub-link submission with a report (title, need, outcome, future perspectives); student Mithunvel K.L, reg. 23BMH1029, slot G2+TG2.
+- Ran `pytest tests/` (55 passed) and `py_compile` (OK). Ran the app from a scratchpad copy with a throwaway DB seeded by `scripts/seed_fake_data.py` so the real `data/caffeine.db` was untouched; replaced the seed's unrealistic 2570 ml entry for today with four realistic entries in that copy only.
+- Screenshots of Entry/Dashboard/Manage/Settings taken with headless Chrome against the Flask server (the pywebview window serves the same pages) -> `docs/screenshots/`; PDF export saved as `docs/sample_report.pdf`.
+- Added `project/PROJECT_REPORT.md`; rendered it to `docs/Mithunvel_K_L_23BMH1029_G2-TG2.pdf` (markdown -> HTML -> Chrome print; `+` in the slot replaced by `-` in the file name to keep it URL-safe).
+- Updated `README.md` (submission table, summary, screenshots, PDF export, structure, tests) and `CLAUDE.md` (document list). No application code changed.
+- Left open: live Open Food Facts check and Python 3.12 check (unchanged).

@@ -24,6 +24,7 @@
 - [x] Fixed gap on the Manage page: date/time (`consumed_at`) of an entry is now click-to-edit (was previously view-only despite the backend and PROJECT_PLAN Phase 4 already covering it) — lets the owner correct mis-timed entries without deleting them
 - [x] `scripts/seed_fake_data.py` fills through `date.today()` and is now re-runnable (skips days that already have entries) — backfilled 2026-07-10 → 2026-08-31, 53 continuous days
 - [x] Fixed the "Daily intake trend" dashboard chart collapsing to a thin strip — `.chart-wrap` now has an explicit height (`maintainAspectRatio:false` needs it); trend chart gets a taller `.chart-wrap-trend`
+- [x] Mini-project submission pack: `project/PROJECT_REPORT.md` (title, need, outcome, future perspectives), PDF copy `docs/Mithunvel_K_L_23BMH1029_G2-TG2.pdf`, screenshots in `docs/screenshots/`, README updated with submission info, gallery and project structure
 
 ## Not Started
 

@@ -1,5 +1,7 @@
 # Caffeine Tracker
 
+**GitHub:** <https://github.com/KL-Mithunvel/CAFFINE-TRACKER>
+
 A local, single-user app for Windows 11 that logs every caffeinated drink
 you consume (in ml), computes the caffeine dose in mg, and shows a
 dashboard of graphs and statistics — including your max-intake day and how
